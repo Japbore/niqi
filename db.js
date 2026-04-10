@@ -82,14 +82,35 @@ function withStore(mode, operation) {
  * @returns {Promise<number>} ID del producto creado
  */
 function addItem(nombre, categoria) {
-  const item = {
-    nombre: nombre.trim(),
-    categoria: categoria || '',
-    cantidad: 1,
-    comprado: false,
-    createdAt: Date.now(),
-  };
-  return withStore('readwrite', (store) => store.add(item));
+  return addItems([{ nombre, categoria }]);
+}
+
+/**
+ * Añade múltiples productos a la lista en una sola transacción.
+ * @param {Array<{nombre: string, categoria: string}>} itemsData - Array de productos a añadir
+ * @returns {Promise<void>}
+ */
+function addItems(itemsData) {
+  return getDb().then((database) => {
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+
+      itemsData.forEach((data) => {
+        const item = {
+          nombre: data.nombre.trim(),
+          categoria: data.categoria || '',
+          cantidad: 1,
+          comprado: false,
+          createdAt: Date.now(),
+        };
+        store.add(item);
+      });
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+  });
 }
 
 /**

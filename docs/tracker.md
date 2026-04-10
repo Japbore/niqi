@@ -10,10 +10,12 @@
 | 2  | Crear `styles.css` con diseño mobile   | ✅ Completado | v0.1.0  |       |
 | 3  | Implementar `db.js` (CRUD IndexedDB)   | ✅ Completado | v0.1.0  |       |
 | 4  | Implementar `app.js` (lógica + UI)     | ✅ Completado | v0.1.0  |       |
-| 5  | Crear `sw.js` (Service Worker)         | ✅ Completado | v0.1.1  |       |
-| 6  | Crear `manifest.json` + iconos         | ✅ Completado | v0.1.1  |       |
-| 7  | Desplegar en GitHub Pages              | ⬚ Pendiente | v0.1.1  |       |
-| 8  | Probar auditoría Lighthouse PWA        | ⬚ Pendiente | v0.1.1  |       |
+| 5  | Crear `sw.js` (Service Worker)         | ✅ Completado | v0.1.0  |       |
+| 6  | Crear `manifest.json` + iconos         | ✅ Completado | v0.1.0  |       |
+| 7  | Desplegar en GitHub Pages              | ✅ Completado | v0.1.0  |       |
+| 8  | Probar auditoría Lighthouse PWA        | ⬚ Pendiente | v0.1.0  |       |
+| 9  | Implementar modal/UI de importación    | ⬚ Pendiente | v0.1.0  |       |
+| 10 | Implementar lógica de parseo masivo    | ⬚ Pendiente | v0.1.0  |       |
 
 ### Leyenda
 

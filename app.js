@@ -23,6 +23,11 @@ let listPurchased = null;
 let buttonClearPurchased = null;
 let emptyState = null;
 
+// Referencias Importación (RF-09)
+let importTextarea = null;
+let btnImportExecute = null;
+let importModal = null; // Instancia de Bootstrap Modal
+
 // --- Funciones privadas ---
 
 /**
@@ -192,6 +197,48 @@ function handleClearPurchased() {
   clearPurchasedItems().then(() => renderList());
 }
 
+/**
+ * Ejecuta la importación masiva desde el textarea.
+ */
+function handleImportExecute() {
+  const text = importTextarea.value.trim();
+  if (!text) return;
+
+  const lines = text.split('\n');
+  const itemsToImport = [];
+
+  lines.forEach((line) => {
+    const rawLine = line.trim();
+    if (!rawLine) return;
+
+    // Intentar separar por coma
+    const parts = rawLine.split(',');
+    const nombre = parts[0].trim();
+    let categoria = parts.length > 1 ? parts[1].trim() : '';
+
+    // Validar si la categoría existe en nuestro diccionario, si no, usar 'Otros' o vacía
+    if (categoria && !CATEGORY_EMOJIS[categoria]) {
+      categoria = 'Otros';
+    }
+
+    if (nombre) {
+      itemsToImport.push({ nombre, categoria });
+    }
+  });
+
+  if (itemsToImport.length > 0) {
+    addItems(itemsToImport).then(() => {
+      importTextarea.value = '';
+      // Cerrar modal
+      const modalElement = document.getElementById('importModal');
+      const modalInstance = bootstrap.Modal.getInstance(modalElement);
+      modalInstance.hide();
+      
+      renderList();
+    });
+  }
+}
+
 // --- Inicialización ---
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -204,6 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
   buttonClearPurchased = document.getElementById('btn-clear-purchased');
   emptyState = document.getElementById('empty-state');
 
+  // Referencias Importación
+  importTextarea = document.getElementById('import-textarea');
+  btnImportExecute = document.getElementById('btn-import-execute');
+
   // Eventos
   buttonAdd.addEventListener('click', handleAdd);
   inputName.addEventListener('keydown', (event) => {
@@ -212,6 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   buttonClearPurchased.addEventListener('click', handleClearPurchased);
+
+  if (btnImportExecute) {
+    btnImportExecute.addEventListener('click', handleImportExecute);
+  }
 
   // Carga inicial
   renderList();

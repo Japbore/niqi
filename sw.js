@@ -1,59 +1,56 @@
 // ===========================================
-// sw — Service Worker para caché offline
+// sw — Service Worker para Niqi (PWA)
 // ===========================================
 
-// --- Constantes ---
-const CACHE_NAME = 'niqi-v1';
+const CACHE_NAME = 'niqi-cache-v2'; // Incrementado para forzar actualización
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
-  './db.js',
   './app.js',
+  './db.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css',
-  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js',
+  'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css'
 ];
 
-// --- Evento: Install ---
-// Cachea todos los recursos estáticos en la primera visita
+// Instalación: Cachear recursos estáticos
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('[SW] Cacheando activos del sistema');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  // Activar inmediatamente sin esperar a que se cierren pestañas
   self.skipWaiting();
 });
 
-// --- Evento: Activate ---
-// Limpia caches antiguos cuando se despliega una nueva versión
+// Activación: Limpiar caches antiguos
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Borrando cache antiguo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
       );
     })
   );
-  // Tomar control de todas las pestañas abiertas
   self.clients.claim();
 });
 
-// --- Evento: Fetch ---
-// Estrategia: Cache First, Network Fallback
+// Estrategia de red: Cache First con fallback a red
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request);
+    caches.match(event.request).then((response) => {
+      // Retornar de cache si existe, si no ir a la red
+      return response || fetch(event.request);
     })
   );
 });
