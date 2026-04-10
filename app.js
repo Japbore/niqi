@@ -22,11 +22,32 @@ let listPending = null;
 let listPurchased = null;
 let buttonClearPurchased = null;
 let emptyState = null;
+let bulkControls = null;
+let btnExpandAll = null;
+let btnCollapseAll = null;
 
 // Referencias Importación (RF-09)
 let importTextarea = null;
 let btnImportExecute = null;
 let importModal = null; // Instancia de Bootstrap Modal
+
+// --- Estado persistente (localStorage) ---
+const STORAGE_KEY_COLLAPSED = 'niqi-collapsed-categories';
+
+function getCollapsedCategories() {
+  const data = localStorage.getItem(STORAGE_KEY_COLLAPSED);
+  return data ? JSON.parse(data) : [];
+}
+
+function setCategoryCollapsed(categoria, isCollapsed) {
+  let collapsed = getCollapsedCategories();
+  if (isCollapsed) {
+    if (!collapsed.includes(categoria)) collapsed.push(categoria);
+  } else {
+    collapsed = collapsed.filter(c => c !== categoria);
+  }
+  localStorage.setItem(STORAGE_KEY_COLLAPSED, JSON.stringify(collapsed));
+}
 
 // --- Funciones privadas ---
 
@@ -67,7 +88,10 @@ function createItemElement(item) {
   deleteButton.className = 'btn btn-outline-danger btn-sm';
   deleteButton.setAttribute('aria-label', `Eliminar ${item.nombre}`);
   deleteButton.innerHTML = '<i class="bi bi-trash"></i>';
-  deleteButton.addEventListener('click', () => handleDelete(item.id));
+  deleteButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // Evitar colapsar/expandir al borrar
+    handleDelete(item.id);
+  });
 
   li.appendChild(leftSide);
   li.appendChild(deleteButton);
@@ -95,7 +119,7 @@ function groupByCategory(items) {
 }
 
 /**
- * Crea un bloque visual para una categoría con sus items.
+ * Crea un bloque visual para una categoría con sus items (RF-09: Colapsable).
  * @param {string} categoria - Nombre de la categoría
  * @param {Array} items - Productos de esa categoría
  * @returns {HTMLElement}
@@ -104,22 +128,53 @@ function createCategoryGroup(categoria, items) {
   const container = document.createElement('div');
   container.className = 'niqi-category-group mb-2';
 
-  // Cabecera de categoría (solo si tiene categoría)
+  const collapsedList = getCollapsedCategories();
+  const isCollapsed = collapsedList.includes(categoria);
+  const targetId = `collapse-${categoria.replace(/\s+/g, '-') || 'sin-cat'}`;
+
+  // Cabecera de categoría (Botón colapsable)
   if (categoria) {
-    const header = document.createElement('div');
-    header.className = 'niqi-category-header';
+    const headerButton = document.createElement('button');
+    headerButton.className = `niqi-category-header ${isCollapsed ? 'collapsed' : ''}`;
+    headerButton.type = 'button';
+    headerButton.setAttribute('data-bs-toggle', 'collapse');
+    headerButton.setAttribute('data-bs-target', `#${targetId}`);
+    headerButton.setAttribute('aria-expanded', !isCollapsed);
+
     const emoji = CATEGORY_EMOJIS[categoria] || '📦';
-    header.textContent = `${emoji} ${categoria}`;
-    container.appendChild(header);
+    const leftText = document.createElement('span');
+    leftText.textContent = `${emoji} ${categoria}`;
+    
+    const icon = document.createElement('i');
+    icon.className = 'bi bi-chevron-down';
+
+    headerButton.appendChild(leftText);
+    headerButton.appendChild(icon);
+    container.appendChild(headerButton);
+
+    // Escuchar cambios de estado para persistencia
+    headerButton.addEventListener('click', () => {
+      // Usamos un pequeño timeout para que el cambio de clase 'collapsed' ocurra
+      setTimeout(() => {
+        const currentlyCollapsed = headerButton.classList.contains('collapsed');
+        setCategoryCollapsed(categoria, currentlyCollapsed);
+      }, 0);
+    });
   }
 
-  // Lista de items
+  // Lista de items (Envoltorio colapsable)
+  const collapseDiv = document.createElement('div');
+  collapseDiv.id = targetId;
+  collapseDiv.className = `collapse ${isCollapsed ? '' : 'show'}`;
+
   const ul = document.createElement('ul');
   ul.className = 'list-group list-group-flush';
   items.forEach((item) => {
     ul.appendChild(createItemElement(item));
   });
-  container.appendChild(ul);
+
+  collapseDiv.appendChild(ul);
+  container.appendChild(collapseDiv);
 
   return container;
 }
@@ -141,6 +196,9 @@ function renderList() {
     groups.forEach((groupItems, categoria) => {
       listPending.appendChild(createCategoryGroup(categoria, groupItems));
     });
+
+    // Mostrar/ocultar controles globales (solo si hay más de una categoría con items)
+    bulkControls.classList.toggle('d-none', groups.size <= 1);
 
     // Renderizar comprados (sin agrupar, son secundarios)
     purchasedItems.forEach((item) => {
@@ -198,6 +256,45 @@ function handleClearPurchased() {
 }
 
 /**
+ * Control masivo: Expandir todo
+ */
+function handleExpandAll() {
+  const collapses = document.querySelectorAll('#list-pending .collapse');
+  const headers = document.querySelectorAll('#list-pending .niqi-category-header');
+  
+  collapses.forEach(el => {
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el);
+    bsCollapse.show();
+  });
+  
+  headers.forEach(h => h.classList.remove('collapsed'));
+  localStorage.setItem(STORAGE_KEY_COLLAPSED, JSON.stringify([]));
+}
+
+/**
+ * Control masivo: Colapsar todo
+ */
+function handleCollapseAll() {
+  const collapses = document.querySelectorAll('#list-pending .collapse');
+  const headers = document.querySelectorAll('#list-pending .niqi-category-header');
+  const collapsedNames = [];
+
+  collapses.forEach(el => {
+    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el);
+    bsCollapse.hide();
+  });
+
+  headers.forEach(h => {
+    h.classList.add('collapsed');
+    // Extraer nombre de la categoría para persistencia
+    const name = h.querySelector('span').textContent.slice(3).trim(); // Quitar emoji
+    collapsedNames.push(name);
+  });
+
+  localStorage.setItem(STORAGE_KEY_COLLAPSED, JSON.stringify(collapsedNames));
+}
+
+/**
  * Ejecuta la importación masiva desde el textarea.
  */
 function handleImportExecute() {
@@ -229,11 +326,9 @@ function handleImportExecute() {
   if (itemsToImport.length > 0) {
     addItems(itemsToImport).then(() => {
       importTextarea.value = '';
-      // Cerrar modal
       const modalElement = document.getElementById('importModal');
       const modalInstance = bootstrap.Modal.getInstance(modalElement);
       modalInstance.hide();
-      
       renderList();
     });
   }
@@ -250,6 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
   listPurchased = document.getElementById('list-purchased');
   buttonClearPurchased = document.getElementById('btn-clear-purchased');
   emptyState = document.getElementById('empty-state');
+  bulkControls = document.getElementById('bulk-controls');
+  btnExpandAll = document.getElementById('btn-expand-all');
+  btnCollapseAll = document.getElementById('btn-collapse-all');
 
   // Referencias Importación
   importTextarea = document.getElementById('import-textarea');
@@ -267,6 +365,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnImportExecute) {
     btnImportExecute.addEventListener('click', handleImportExecute);
   }
+
+  // Controles globales
+  btnExpandAll.addEventListener('click', handleExpandAll);
+  btnCollapseAll.addEventListener('click', handleCollapseAll);
 
   // Carga inicial
   renderList();

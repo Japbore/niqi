@@ -14,8 +14,11 @@
 | 6  | Crear `manifest.json` + iconos         | ✅ Completado | v0.1.0  |       |
 | 7  | Desplegar en GitHub Pages              | ✅ Completado | v0.1.0  |       |
 | 8  | Probar auditoría Lighthouse PWA        | ⬚ Pendiente | v0.1.0  |       |
-| 9  | Implementar modal/UI de importación    | ⬚ Pendiente | v0.1.0  |       |
-| 10 | Implementar lógica de parseo masivo    | ⬚ Pendiente | v0.1.0  |       |
+| 9  | Implementar modal/UI de importación    | ✅ Completado | v0.1.0  |       |
+| 10 | Implementar lógica de parseo masivo    | ✅ Completado | v0.1.0  |       |
+| 11 | Hacer categorías colapsables (UI)      | ⬚ Pendiente | v0.1.0  |       |
+| 12 | Añadir botones Expandir/Colapsar todo  | ⬚ Pendiente | v0.1.0  |       |
+| 13 | Persistencia de estado colapsado       | ⬚ Pendiente | v0.1.0  |       |
 
 ### Leyenda
 
