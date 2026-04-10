@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Niqi — Lista de la compra sencilla que funciona sin conexión">
+  <meta name="theme-color" content="#4a90d9">
+  <title>Niqi — Lista de la Compra</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+        crossorigin="anonymous">
+
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+
+  <!-- Estilos custom -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container niqi-container">
+
+    <!-- Cabecera -->
+    <header class="niqi-header">
+      <h1><i class="bi bi-cart-check"></i> Niqi</h1>
+      <p class="text-muted mb-0">Tu lista de la compra</p>
+    </header>
+
+    <!-- Formulario para añadir producto (RF-01 + RF-08) -->
+    <div class="niqi-input-group">
+      <div class="input-group">
+        <input type="text"
+               id="input-name"
+               class="form-control"
+               placeholder="Añadir producto..."
+               aria-label="Nombre del producto">
+        <select id="select-category" class="form-select niqi-category-select" aria-label="Categoría">
+          <option value="">Sin categoría</option>
+          <option value="Frutas y verduras">🥬 Frutas y verduras</option>
+          <option value="Carnes y pescados">🥩 Carnes y pescados</option>
+          <option value="Lácteos">🧀 Lácteos</option>
+          <option value="Panadería">🍞 Panadería</option>
+          <option value="Bebidas">🥤 Bebidas</option>
+          <option value="Limpieza">🧹 Limpieza</option>
+          <option value="Higiene">🧴 Higiene</option>
+          <option value="Otros">📦 Otros</option>
+        </select>
+        <button id="btn-add" class="btn btn-primary" type="button">
+          <i class="bi bi-plus-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Estado vacío -->
+    <div id="empty-state" class="niqi-empty-state">
+      <i class="bi bi-bag"></i>
+      <p>La lista está vacía.<br>Añade tu primer producto.</p>
+    </div>
+
+    <!-- Lista de productos pendientes (agrupados por categoría) -->
+    <div id="list-pending"></div>
+
+    <!-- Sección de productos comprados -->
+    <div id="purchased-section" class="d-none">
+      <div class="d-flex align-items-center justify-content-between">
+        <span class="niqi-purchased-header">Comprados</span>
+        <button id="btn-clear-purchased" class="btn btn-sm btn-outline-secondary">
+          Limpiar
+        </button>
+      </div>
+      <ul id="list-purchased" class="list-group list-group-flush"></ul>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+
+  <!-- Registro del Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+
+</body>
+</html>

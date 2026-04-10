@@ -1,0 +1,89 @@
+/* ===========================================
+   styles — Estilos custom complementarios a Bootstrap
+   =========================================== */
+
+/* --- Variables custom --- */
+:root {
+  --niqi-color-primary: #4a90d9;
+  --niqi-color-danger: #dc3545;
+  --niqi-color-success: #28a745;
+  --niqi-color-bg: #f8f9fa;
+  --niqi-color-text-muted: #6c757d;
+  --niqi-radius: 0.75rem;
+}
+
+/* --- Layout general --- */
+body {
+  background-color: var(--niqi-color-bg);
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.niqi-container {
+  max-width: 480px;
+}
+
+/* --- Header --- */
+.niqi-header {
+  text-align: center;
+  padding: 1.5rem 0 1rem;
+}
+
+.niqi-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--niqi-color-primary);
+}
+
+/* --- Formulario de entrada --- */
+.niqi-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.niqi-category-select {
+  max-width: 140px;
+}
+
+/* --- Items de la lista --- */
+.niqi-item-purchased .niqi-item-name {
+  text-decoration: line-through;
+  color: var(--niqi-color-text-muted);
+}
+
+.niqi-item-purchased {
+  opacity: 0.7;
+}
+
+/* --- Grupos por categoría (RF-08) --- */
+.niqi-category-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--niqi-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.75rem 0 0.25rem;
+}
+
+/* --- Sección de comprados --- */
+.niqi-purchased-header {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--niqi-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Estado vacío --- */
+.niqi-empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--niqi-color-text-muted);
+}
+
+.niqi-empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
