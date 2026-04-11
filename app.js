@@ -29,7 +29,19 @@ let btnCollapseAll = null;
 // Referencias Importación (RF-09)
 let importTextarea = null;
 let btnImportExecute = null;
-let importModal = null; // Instancia de Bootstrap Modal
+
+// Referencias Edición (RF-13)
+let editModal = null;
+let editId = null;
+let editName = null;
+let editQuantity = null;
+let editCategory = null;
+let btnSaveEdit = null;
+
+// Referencias Búsqueda (RF-18)
+let inputSearch = null;
+let btnClearSearch = null;
+
 
 // --- Estado persistente (localStorage) ---
 const STORAGE_KEY_COLLAPSED = 'niqi-collapsed-categories';
@@ -76,12 +88,26 @@ function createItemElement(item) {
   checkbox.setAttribute('aria-label', `Marcar ${item.nombre} como ${item.comprado ? 'pendiente' : 'comprado'}`);
   checkbox.addEventListener('change', () => handleToggle(item.id));
 
+  const nameLabelContainer = document.createElement('div');
+  nameLabelContainer.className = 'd-flex align-items-center gap-2 text-break niqi-edit-trigger';
+  nameLabelContainer.style.cursor = 'pointer'; // Indicador táctil
+  nameLabelContainer.addEventListener('click', () => openEditModal(item));
+
+  // Opcional: Badge de cantidad (RF-14)
+  if (item.cantidad) {
+    const badge = document.createElement('span');
+    badge.className = 'badge bg-secondary rounded-pill';
+    badge.textContent = item.cantidad;
+    nameLabelContainer.appendChild(badge);
+  }
+
   const nameSpan = document.createElement('span');
   nameSpan.className = 'niqi-item-name';
   nameSpan.textContent = item.nombre;
+  nameLabelContainer.appendChild(nameSpan);
 
   leftSide.appendChild(checkbox);
-  leftSide.appendChild(nameSpan);
+  leftSide.appendChild(nameLabelContainer);
 
   // Botón eliminar
   const deleteButton = document.createElement('button');
@@ -223,16 +249,49 @@ function renderList() {
 // --- Manejadores de eventos ---
 
 /**
+ * Parsea un texto natural extrayendo cantidad, nombre y categoría opcional.
+ * @param {string} texto 
+ * @returns {Object} { cantidad, nombre, categoria }
+ */
+function parseNaturalInput(texto) {
+  let cantidad = '';
+  let nombre = '';
+  let categoria = '';
+
+  const idxComa = texto.lastIndexOf(',');
+  let resto = texto;
+  if (idxComa !== -1) {
+    categoria = texto.substring(idxComa + 1).trim();
+    if (categoria && !CATEGORY_EMOJIS[categoria]) categoria = 'Otros';
+    resto = texto.substring(0, idxComa).trim();
+  }
+
+  const cantidadRegex = /^((?:\d+(?:[.,]\d+)?)(?:\s*[a-zA-Z]+)?)\s+(.+)$/i;
+  const match = resto.match(cantidadRegex);
+  
+  if (match) {
+    cantidad = match[1].trim();
+    nombre = match[2].trim();
+  } else {
+    nombre = resto.trim();
+  }
+
+  return { cantidad, nombre, categoria };
+}
+
+/**
  * Añade un nuevo producto desde el campo de texto.
  */
 function handleAdd() {
-  const nombre = inputName.value.trim();
-  if (!nombre) return;
+  const rawText = inputName.value.trim();
+  if (!rawText) return;
 
-  const categoria = selectCategory.value;
+  const parsed = parseNaturalInput(rawText);
+  const categoria = selectCategory.value || parsed.categoria; // El select manda si se eligió algo
 
-  addItem(nombre, categoria).then(() => {
+  addItem(parsed.nombre, categoria, parsed.cantidad).then(() => {
     inputName.value = '';
+    selectCategory.value = '';
     inputName.focus();
     renderList();
   });
@@ -314,30 +373,93 @@ function handleImportExecute() {
     const rawLine = line.trim();
     if (!rawLine) return;
 
-    // Intentar separar por coma
-    const parts = rawLine.split(',');
-    const nombre = parts[0].trim();
-    let categoria = parts.length > 1 ? parts[1].trim() : '';
+    const parsed = parseNaturalInput(rawLine);
 
-    // Validar si la categoría existe en nuestro diccionario, si no, usar 'Otros' o vacía
-    if (categoria && !CATEGORY_EMOJIS[categoria]) {
-      categoria = 'Otros';
-    }
-
-    if (nombre) {
-      itemsToImport.push({ nombre, categoria });
+    if (parsed.nombre) {
+      itemsToImport.push({
+        nombre: parsed.nombre,
+        categoria: parsed.categoria || '',
+        cantidad: parsed.cantidad || ''
+      });
     }
   });
 
   if (itemsToImport.length > 0) {
     addItems(itemsToImport).then(() => {
       importTextarea.value = '';
-      const modalElement = document.getElementById('importModal');
-      const modalInstance = bootstrap.Modal.getInstance(modalElement);
-      modalInstance.hide();
+      const modalInstance = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+      if (modalInstance) modalInstance.hide();
       renderList();
     });
   }
+}
+
+/**
+ * Abre el modal de edición de un producto
+ */
+function openEditModal(item) {
+  editId.value = item.id;
+  editName.value = item.nombre;
+  editQuantity.value = item.cantidad || '';
+  editCategory.value = item.categoria || '';
+  editModal.show();
+}
+
+/**
+ * Guarda los cambios de edición
+ */
+function handleSaveEdit() {
+  const id = parseInt(editId.value, 10);
+  const nombre = editName.value.trim();
+  const cantidad = editQuantity.value.trim();
+  const categoria = editCategory.value;
+
+  if (!nombre) return;
+
+  updateItem(id, { nombre, cantidad, categoria }).then(() => {
+    editModal.hide();
+    renderList();
+  });
+}
+
+/**
+ * Filtra los productos en tiempo real.
+ */
+function applySearchFilter(term) {
+  const query = term.toLowerCase();
+  const allItems = document.querySelectorAll('.list-group-item');
+  
+  if (query.length < 3) {
+    allItems.forEach(li => li.classList.remove('d-none'));
+    // Expandir lo que estaba expandido normalmente (renderList recarga, así que aquí es rudimentario, pero vale)
+    // Para no complicarlo, mostramos todo y dejamos el colapso como estaba.
+    const categories = document.querySelectorAll('#list-pending > div, #purchased-section');
+    categories.forEach(c => c.classList.remove('d-none'));
+    return;
+  }
+
+  // Filtrado activo
+  const categories = document.querySelectorAll('#list-pending > div');
+  categories.forEach(c => c.classList.add('d-none')); // Ocultamos todas primero
+
+  allItems.forEach(li => {
+    const text = li.textContent.toLowerCase(); // textContent incluye todo dentro del li (nombre, cantidad, etc)
+    if (text.includes(query)) {
+      li.classList.remove('d-none');
+      // Mostrar la categoría a la que pertenece
+      const catGroup = li.closest('div[id^="cat-"]');
+      if (catGroup) {
+        catGroup.parentElement.classList.remove('d-none'); // el div que envuelve ul
+        catGroup.classList.add('show'); // Expandirlo a la fuerza
+      }
+      
+      const purchasedSec = li.closest('#purchased-section');
+      if (purchasedSec) purchasedSec.classList.remove('d-none');
+
+    } else {
+      li.classList.add('d-none');
+    }
+  });
 }
 
 // --- Inicialización ---
@@ -359,6 +481,18 @@ document.addEventListener('DOMContentLoaded', () => {
   importTextarea = document.getElementById('import-textarea');
   btnImportExecute = document.getElementById('btn-import-execute');
 
+  // Referencias Edición
+  editId = document.getElementById('edit-id');
+  editName = document.getElementById('edit-name');
+  editQuantity = document.getElementById('edit-quantity');
+  editCategory = document.getElementById('edit-category');
+  btnSaveEdit = document.getElementById('btn-save-edit');
+  editModal = new bootstrap.Modal(document.getElementById('editModal'));
+
+  // Referencias Búsqueda
+  inputSearch = document.getElementById('input-search');
+  btnClearSearch = document.getElementById('btn-clear-search');
+
   // Eventos
   buttonAdd.addEventListener('click', handleAdd);
   inputName.addEventListener('keydown', (event) => {
@@ -371,6 +505,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnImportExecute) {
     btnImportExecute.addEventListener('click', handleImportExecute);
   }
+
+  // Eventos de Edición
+  btnSaveEdit.addEventListener('click', handleSaveEdit);
+  
+  // Eventos de Búsqueda
+  inputSearch.addEventListener('input', (e) => {
+    const term = e.target.value.trim();
+    btnClearSearch.classList.toggle('d-none', term.length === 0);
+    applySearchFilter(term);
+  });
+  btnClearSearch.addEventListener('click', () => {
+    inputSearch.value = '';
+    btnClearSearch.classList.add('d-none');
+    applySearchFilter('');
+  });
 
   // Controles globales
   btnExpandAll.addEventListener('click', handleExpandAll);

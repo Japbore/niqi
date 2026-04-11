@@ -4,7 +4,7 @@
 
 // --- Constantes ---
 const DB_NAME = 'niqi-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'items';
 
 // --- Estado del módulo ---
@@ -39,8 +39,18 @@ function getDb() {
       // CREATE INDEX idx_items_comprado
       store.createIndex('comprado', 'comprado', { unique: false });
 
-      // CREATE INDEX idx_items_categoria
-      store.createIndex('categoria', 'categoria', { unique: false });
+      // MIGRACIÓN A V2: Añadir índice para cantidad
+      if (event.oldVersion < 2) {
+        // En IndexedDB, añadir una propiedad a un object no requiere alterar la tabla si no es índice,
+        // pero podemos crear el índice si quisiéramos buscar por cantidad.
+        // Dado el alcance, es opcional. Lo creamos por consistencia.
+        // Nota: si createObjectStore ya la ha creado en esta misma transacción (v0 a v2 directa), 
+        // store ya tiene las cosas. El `onupgradeneeded` provee el store actual vía transaction.
+        const store = event.target.transaction.objectStore(STORE_NAME);
+        if (!store.indexNames.contains('cantidad')) {
+          store.createIndex('cantidad', 'cantidad', { unique: false });
+        }
+      }
     };
 
     request.onsuccess = (event) => {
@@ -79,10 +89,11 @@ function withStore(mode, operation) {
  * Añade un producto a la lista.
  * @param {string} nombre - Nombre del producto
  * @param {string} categoria - Categoría del producto (puede ser vacía)
+ * @param {string} cantidad - Cantidad/Unidades (puede ser vacía)
  * @returns {Promise<number>} ID del producto creado
  */
-function addItem(nombre, categoria) {
-  return addItems([{ nombre, categoria }]);
+function addItem(nombre, categoria = '', cantidad = '') {
+  return addItems([{ nombre, categoria, cantidad }]);
 }
 
 /**
@@ -100,7 +111,7 @@ function addItems(itemsData) {
         const item = {
           nombre: data.nombre.trim(),
           categoria: data.categoria || '',
-          cantidad: 1,
+          cantidad: data.cantidad || '',
           comprado: false,
           createdAt: Date.now(),
         };
@@ -187,6 +198,35 @@ function clearPurchasedItems() {
 
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
+    });
+  });
+}
+
+/**
+ * Actualiza los datos de un producto existente.
+ * @param {number} id - ID del producto
+ * @param {Object} updates - Objeto con {nombre, categoria, cantidad}
+ * @returns {Promise<void>}
+ */
+function updateItem(id, updates) {
+  return getDb().then((database) => {
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get(id);
+
+      request.onsuccess = () => {
+        const item = request.result;
+        if (!item) return reject(new Error('Item not found'));
+        
+        Object.assign(item, updates);
+        
+        const putReq = store.put(item);
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      
+      request.onerror = () => reject(request.error);
     });
   });
 }

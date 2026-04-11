@@ -30,21 +30,38 @@
 </head>
 <body>
 
-  <div class="container niqi-container">
-
-    <!-- Cabecera -->
-    <header class="niqi-header d-flex align-items-center justify-content-between">
-      <div>
-        <h1><i class="bi bi-cart-check"></i> Niqi</h1>
-        <p class="text-muted mb-0">Tu lista de la compra</p>
-      </div>
-      <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
-        <i class="bi bi-download"></i> Importar
+  <!-- Barra Superior (Navbar) RF-16 -->
+  <nav class="navbar navbar-dark bg-primary fixed-top">
+    <div class="container-fluid niqi-container d-flex justify-content-between px-3">
+      <a class="navbar-brand mb-0 h1 d-flex align-items-center gap-2" href="#">
+        <i class="bi bi-cart-check"></i> Niqi
+      </a>
+      <button class="navbar-toggler border-0 px-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMenu" aria-controls="offcanvasMenu">
+        <span class="navbar-toggler-icon"></span>
       </button>
-    </header>
+    </div>
+  </nav>
+
+  <!-- Menú lateral (Offcanvas) RF-17 -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasMenu" aria-labelledby="offcanvasMenuLabel">
+    <div class="offcanvas-header bg-primary text-white">
+      <h5 class="offcanvas-title mb-0" id="offcanvasMenuLabel"><i class="bi bi-cart-check"></i> Niqi</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column gap-2 p-4">
+      <button class="btn btn-outline-primary text-start w-100 py-2" data-bs-toggle="modal" data-bs-target="#importModal" data-bs-dismiss="offcanvas">
+        <i class="bi bi-download me-2"></i> Importar Masivo
+      </button>
+      <button class="btn btn-outline-secondary text-start w-100 py-2" data-bs-toggle="modal" data-bs-target="#aboutModal" data-bs-dismiss="offcanvas">
+        <i class="bi bi-info-circle me-2"></i> Acerca de Niqi
+      </button>
+    </div>
+  </div>
+
+  <div class="container niqi-container" style="margin-top: 4.5rem;">
 
     <!-- Formulario para añadir producto (RF-01 + RF-08) -->
-    <div class="niqi-input-group">
+    <div class="niqi-input-group mb-3">
       <div class="input-group">
         <input type="text"
                id="input-name"
@@ -66,6 +83,13 @@
           <i class="bi bi-plus-lg"></i>
         </button>
       </div>
+    </div>
+
+    <!-- Buscador/Filtro (RF-18) -->
+    <div class="input-group mb-3 niqi-search-group">
+      <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-search"></i></span>
+      <input type="search" id="input-search" class="form-control border-start-0 ps-0" placeholder="Buscar en la lista (mín. 3 letras)..." aria-label="Buscar producto">
+      <button class="btn btn-outline-secondary d-none" type="button" id="btn-clear-search" aria-label="Borrar búsqueda"><i class="bi bi-x-lg"></i></button>
     </div>
 
     <!-- Estado vacío -->
@@ -109,13 +133,76 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="text-muted small">Escribe o pega una lista de productos. Un producto por línea. Opcionalmente añade la categoría tras una coma.</p>
-          <p class="text-muted extra-small">Ejemplo:<br><code>Leche,Lácteos</code><br><code>Pan,Panadería</code><br><code>Manzanas</code></p>
-          <textarea id="import-textarea" class="form-control" rows="10" placeholder="Producto,Categoría..."></textarea>
+          <p class="text-muted small">Escribe o pega una lista de productos. Un producto por línea. Opcionalmente añade la cantidad y categoría.</p>
+          <p class="text-muted extra-small">Formato esperado: <code>[Cantidad ]Nombre[,Categoría]</code></p>
+          <p class="text-muted extra-small mb-2">Ejemplo:<br><code>2L Leche,Lácteos</code><br><code>Pan,Panadería</code><br><code>1kg Manzanas</code><br><code>Huevos</code></p>
+          <textarea id="import-textarea" class="form-control" rows="8" placeholder="2L Leche,Lácteos&#10;Pan,Panadería..."></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="button" id="btn-import-execute" class="btn btn-primary">Importar ahora</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Acerca de (RF-17) -->
+  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="aboutModalLabel"><i class="bi bi-info-circle me-2"></i> Acerca de Niqi</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center p-4">
+          <i class="bi bi-cart-check text-primary mb-3" style="font-size: 3rem;"></i>
+          <h4>Niqi v0.2.0</h4>
+          <p class="text-muted">La lista de la compra minimalista, sin conexión y sin dependencias mágicas. Tus datos son tuyos y viven en tu dispositivo.</p>
+          <p class="small text-muted mb-0">Arquitectura Clean Code. Hecho con ❤️ usando JS Vanilla + IndexedDB.</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edición (RF-13) -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Editar producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit-id">
+          <div class="mb-3">
+            <label for="edit-name" class="form-label">Nombre del producto</label>
+            <input type="text" class="form-control" id="edit-name">
+          </div>
+          <div class="mb-3">
+            <label for="edit-quantity" class="form-label">Cantidad / Unidades</label>
+            <input type="text" class="form-control" id="edit-quantity" placeholder="Ej: 2kg, 3, 500g...">
+          </div>
+          <div class="mb-3">
+            <label for="edit-category" class="form-label">Categoría</label>
+            <select id="edit-category" class="form-select">
+              <option value="">Sin categoría</option>
+              <option value="Frutas y verduras">🥬 Frutas y verduras</option>
+              <option value="Carnes y pescados">🥩 Carnes y pescados</option>
+              <option value="Lácteos">🧀 Lácteos</option>
+              <option value="Panadería">🍞 Panadería</option>
+              <option value="Bebidas">🥤 Bebidas</option>
+              <option value="Limpieza">🧹 Limpieza</option>
+              <option value="Higiene">🧴 Higiene</option>
+              <option value="Otros">📦 Otros</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btn-save-edit" class="btn btn-primary">Guardar cambios</button>
         </div>
       </div>
     </div>
