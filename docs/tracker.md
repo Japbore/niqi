@@ -16,9 +16,9 @@
 | 8  | Probar auditoría Lighthouse PWA        | ⬚ Pendiente | v0.1.0  |       |
 | 9  | Implementar modal/UI de importación    | ✅ Completado | v0.1.0  |       |
 | 10 | Implementar lógica de parseo masivo    | ✅ Completado | v0.1.0  |       |
-| 11 | Hacer categorías colapsables (UI)      | ⬚ Pendiente | v0.1.0  |       |
-| 12 | Añadir botones Expandir/Colapsar todo  | ⬚ Pendiente | v0.1.0  |       |
-| 13 | Persistencia de estado colapsado       | ⬚ Pendiente | v0.1.0  |       |
+| 11 | Hacer categorías colapsables (UI)      | ✅ Completado | v0.1.0  |       |
+| 12 | Añadir botones Expandir/Colapsar todo  | ✅ Completado | v0.1.0  |       |
+| 13 | Persistencia de estado colapsado       | ✅ Completado | v0.1.0  |       |
 
 ### Leyenda
 

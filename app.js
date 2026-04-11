@@ -130,37 +130,35 @@ function createCategoryGroup(categoria, items) {
 
   const collapsedList = getCollapsedCategories();
   const isCollapsed = collapsedList.includes(categoria);
-  const targetId = `collapse-${categoria.replace(/\s+/g, '-') || 'sin-cat'}`;
+  const displayCategory = categoria || 'Sin categoría';
+  const targetId = `collapse-${displayCategory.replace(/\s+/g, '-')}`;
 
   // Cabecera de categoría (Botón colapsable)
-  if (categoria) {
-    const headerButton = document.createElement('button');
-    headerButton.className = `niqi-category-header ${isCollapsed ? 'collapsed' : ''}`;
-    headerButton.type = 'button';
-    headerButton.setAttribute('data-bs-toggle', 'collapse');
-    headerButton.setAttribute('data-bs-target', `#${targetId}`);
-    headerButton.setAttribute('aria-expanded', !isCollapsed);
+  const headerButton = document.createElement('button');
+  headerButton.className = `niqi-category-header ${isCollapsed ? 'collapsed' : ''}`;
+  headerButton.type = 'button';
+  headerButton.setAttribute('data-bs-toggle', 'collapse');
+  headerButton.setAttribute('data-bs-target', `#${targetId}`);
+  headerButton.setAttribute('aria-expanded', !isCollapsed);
 
-    const emoji = CATEGORY_EMOJIS[categoria] || '📦';
-    const leftText = document.createElement('span');
-    leftText.textContent = `${emoji} ${categoria}`;
-    
-    const icon = document.createElement('i');
-    icon.className = 'bi bi-chevron-down';
+  const emoji = CATEGORY_EMOJIS[categoria] || '📦';
+  const leftText = document.createElement('span');
+  leftText.textContent = `${emoji} ${displayCategory.toUpperCase()}`;
+  const icon = document.createElement('i');
+  icon.className = 'bi bi-chevron-down';
 
-    headerButton.appendChild(leftText);
-    headerButton.appendChild(icon);
-    container.appendChild(headerButton);
+  headerButton.appendChild(leftText);
+  headerButton.appendChild(icon);
+  container.appendChild(headerButton);
 
-    // Escuchar cambios de estado para persistencia
-    headerButton.addEventListener('click', () => {
-      // Usamos un pequeño timeout para que el cambio de clase 'collapsed' ocurra
-      setTimeout(() => {
-        const currentlyCollapsed = headerButton.classList.contains('collapsed');
-        setCategoryCollapsed(categoria, currentlyCollapsed);
-      }, 0);
-    });
-  }
+  // Escuchar cambios de estado para persistencia
+  headerButton.addEventListener('click', () => {
+    // Usamos un pequeño timeout para que el cambio de clase 'collapsed' ocurra
+    setTimeout(() => {
+      const currentlyCollapsed = headerButton.classList.contains('collapsed');
+      setCategoryCollapsed(categoria, currentlyCollapsed);
+    }, 0);
+  });
 
   // Lista de items (Envoltorio colapsable)
   const collapseDiv = document.createElement('div');
