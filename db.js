@@ -26,27 +26,29 @@ function getDb() {
     // Creación/migración del schema (ver docs/modelo-datos.md)
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
+      let store;
 
-      // CREATE OBJECT STORE items
-      const store = database.createObjectStore(STORE_NAME, {
-        keyPath: 'id',
-        autoIncrement: true,
-      });
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        // CREATE OBJECT STORE items
+        store = database.createObjectStore(STORE_NAME, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
 
-      // CREATE INDEX idx_items_nombre
-      store.createIndex('nombre', 'nombre', { unique: false });
+        // CREATE INDEX idx_items_nombre
+        store.createIndex('nombre', 'nombre', { unique: false });
 
-      // CREATE INDEX idx_items_comprado
-      store.createIndex('comprado', 'comprado', { unique: false });
+        // CREATE INDEX idx_items_comprado
+        store.createIndex('comprado', 'comprado', { unique: false });
+
+        // CREATE INDEX idx_items_categoria
+        store.createIndex('categoria', 'categoria', { unique: false });
+      } else {
+        store = event.target.transaction.objectStore(STORE_NAME);
+      }
 
       // MIGRACIÓN A V2: Añadir índice para cantidad
-      if (event.oldVersion < 2) {
-        // En IndexedDB, añadir una propiedad a un object no requiere alterar la tabla si no es índice,
-        // pero podemos crear el índice si quisiéramos buscar por cantidad.
-        // Dado el alcance, es opcional. Lo creamos por consistencia.
-        // Nota: si createObjectStore ya la ha creado en esta misma transacción (v0 a v2 directa), 
-        // store ya tiene las cosas. El `onupgradeneeded` provee el store actual vía transaction.
-        const store = event.target.transaction.objectStore(STORE_NAME);
+      if (event.oldVersion > 0 && event.oldVersion < 2) {
         if (!store.indexNames.contains('cantidad')) {
           store.createIndex('cantidad', 'cantidad', { unique: false });
         }
