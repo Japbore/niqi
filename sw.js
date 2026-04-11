@@ -2,7 +2,7 @@
 // sw — Service Worker para Niqi (PWA)
 // ===========================================
 
-const CACHE_NAME = 'niqi-cache-v4'; // Incrementado para forzar actualización
+const CACHE_NAME = 'niqi-cache-v5'; // Incrementado para forzar actualización
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

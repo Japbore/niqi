@@ -191,8 +191,16 @@ function renderList() {
 
     // Renderizar pendientes agrupados por categoría (RF-08)
     const groups = groupByCategory(pendingItems);
-    groups.forEach((groupItems, categoria) => {
-      listPending.appendChild(createCategoryGroup(categoria, groupItems));
+    
+    // Ordenar categorías: 'Sin categoría' (vacía) siempre al final
+    const sortedCategories = Array.from(groups.keys()).sort((a, b) => {
+      if (a === '') return 1;
+      if (b === '') return -1;
+      return a.localeCompare(b);
+    });
+
+    sortedCategories.forEach((categoria) => {
+      listPending.appendChild(createCategoryGroup(categoria, groups.get(categoria)));
     });
 
     // Mostrar/ocultar controles globales (solo si hay más de una categoría con items)
