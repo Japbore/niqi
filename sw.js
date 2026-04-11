@@ -2,7 +2,7 @@
 // sw — Service Worker para Niqi (PWA)
 // ===========================================
 
-const CACHE_NAME = 'niqi-cache-v9'; // Incrementado por hotfix de IndexedDB
+const CACHE_NAME = 'niqi-cache-v10'; // Hotfix v0.2.1 (Acentos, persitencia, cat. libres)
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

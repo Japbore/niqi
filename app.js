@@ -262,7 +262,6 @@ function parseNaturalInput(texto) {
   let resto = texto;
   if (idxComa !== -1) {
     categoria = texto.substring(idxComa + 1).trim();
-    if (categoria && !CATEGORY_EMOJIS[categoria]) categoria = 'Otros';
     resto = texto.substring(0, idxComa).trim();
   }
 
@@ -291,7 +290,7 @@ function handleAdd() {
 
   addItem(parsed.nombre, categoria, parsed.cantidad).then(() => {
     inputName.value = '';
-    selectCategory.value = '';
+    // RF-20: Mantiene la misma categoría en el select form
     inputName.focus();
     renderList();
   });
@@ -423,16 +422,22 @@ function handleSaveEdit() {
 }
 
 /**
+ * Normaliza un texto para búsquedas (quita tildes y pasa a minúsculas)
+ * @param {string} str 
+ */
+function normalize(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+/**
  * Filtra los productos en tiempo real.
  */
 function applySearchFilter(term) {
-  const query = term.toLowerCase();
+  const query = normalize(term);
   const allItems = document.querySelectorAll('.list-group-item');
   
   if (query.length < 3) {
     allItems.forEach(li => li.classList.remove('d-none'));
-    // Expandir lo que estaba expandido normalmente (renderList recarga, así que aquí es rudimentario, pero vale)
-    // Para no complicarlo, mostramos todo y dejamos el colapso como estaba.
     const categories = document.querySelectorAll('#list-pending > div, #purchased-section');
     categories.forEach(c => c.classList.remove('d-none'));
     return;
@@ -440,17 +445,18 @@ function applySearchFilter(term) {
 
   // Filtrado activo
   const categories = document.querySelectorAll('#list-pending > div');
-  categories.forEach(c => c.classList.add('d-none')); // Ocultamos todas primero
+  categories.forEach(c => c.classList.add('d-none'));
 
   allItems.forEach(li => {
-    const text = li.textContent.toLowerCase(); // textContent incluye todo dentro del li (nombre, cantidad, etc)
+    const text = normalize(li.textContent);
     if (text.includes(query)) {
       li.classList.remove('d-none');
-      // Mostrar la categoría a la que pertenece
-      const catGroup = li.closest('div[id^="cat-"]');
+      const catGroup = li.closest('div[id^="cat-"], div[class*="niqi-category-group"]');
       if (catGroup) {
-        catGroup.parentElement.classList.remove('d-none'); // el div que envuelve ul
-        catGroup.classList.add('show'); // Expandirlo a la fuerza
+        catGroup.classList.remove('d-none');
+        // Mostrar también el contenido interior
+        const collapseDiv = catGroup.querySelector('.collapse');
+        if (collapseDiv) collapseDiv.classList.add('show');
       }
       
       const purchasedSec = li.closest('#purchased-section');
