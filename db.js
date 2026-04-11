@@ -173,13 +173,14 @@ function clearPurchasedItems() {
     return new Promise((resolve, reject) => {
       const transaction = database.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('comprado');
-      const request = index.openCursor(IDBKeyRange.only(true));
+      const request = store.openCursor();
 
       request.onsuccess = (event) => {
         const cursor = event.target.result;
         if (cursor) {
-          cursor.delete();
+          if (cursor.value.comprado) {
+            cursor.delete();
+          }
           cursor.continue();
         }
       };
