@@ -166,6 +166,7 @@ function createCategoryGroup(categoria, items) {
   headerButton.setAttribute('data-bs-toggle', 'collapse');
   headerButton.setAttribute('data-bs-target', `#${targetId}`);
   headerButton.setAttribute('aria-expanded', !isCollapsed);
+  headerButton.dataset.categoria = categoria;
 
   const emoji = CATEGORY_EMOJIS[categoria] || '📦';
   const leftText = document.createElement('span');
@@ -265,7 +266,7 @@ function parseNaturalInput(texto) {
     resto = texto.substring(0, idxComa).trim();
   }
 
-  const cantidadRegex = /^((?:\d+(?:[.,]\d+)?)(?:\s*[a-zA-Z]+)?)\s+(.+)$/i;
+  const cantidadRegex = /^(\d\S*)\s+(.+)$/i;
   const match = resto.match(cantidadRegex);
   
   if (match) {
@@ -350,8 +351,8 @@ function handleCollapseAll() {
 
   headers.forEach(h => {
     h.classList.add('collapsed');
-    // Extraer nombre de la categoría para persistencia
-    const name = h.querySelector('span').textContent.slice(3).trim(); // Quitar emoji
+    // Extraer nombre de la categoría para persistencia usando el dataset
+    const name = h.dataset.categoria;
     collapsedNames.push(name);
   });
 
