@@ -360,7 +360,7 @@ function handleCollapseAll() {
 }
 
 /**
- * Ejecuta la importación masiva desde el textarea.
+ * Ejecuta la carga en bloque desde el textarea.
  */
 function handleImportExecute() {
   const text = importTextarea.value.trim();
@@ -368,17 +368,23 @@ function handleImportExecute() {
 
   const lines = text.split('\n');
   const itemsToImport = [];
+  let currentCategory = '';
 
   lines.forEach((line) => {
     const rawLine = line.trim();
     if (!rawLine) return;
+
+    if (rawLine.endsWith(':')) {
+      currentCategory = rawLine.slice(0, -1).trim();
+      return;
+    }
 
     const parsed = parseNaturalInput(rawLine);
 
     if (parsed.nombre) {
       itemsToImport.push({
         nombre: parsed.nombre,
-        categoria: parsed.categoria || '',
+        categoria: parsed.categoria || currentCategory,
         cantidad: parsed.cantidad || ''
       });
     }

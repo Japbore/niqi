@@ -50,7 +50,7 @@
     </div>
     <div class="offcanvas-body d-flex flex-column gap-2 p-4">
       <button class="btn btn-outline-primary text-start w-100 py-2" data-bs-toggle="modal" data-bs-target="#importModal" data-bs-dismiss="offcanvas">
-        <i class="bi bi-download me-2"></i> Importar Masivo
+        <i class="bi bi-download me-2"></i> Carga en Bloque
       </button>
       <button class="btn btn-outline-secondary text-start w-100 py-2" data-bs-toggle="modal" data-bs-target="#aboutModal" data-bs-dismiss="offcanvas">
         <i class="bi bi-info-circle me-2"></i> Acerca de Niqi
@@ -124,23 +124,23 @@
 
   </div>
 
-  <!-- Modal de Importación (RF-09) -->
+  <!-- Modal de Carga en Bloque (RF-22) -->
   <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="importModalLabel">Importar productos</h5>
+          <h5 class="modal-title" id="importModalLabel">Carga en bloque</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="text-muted small">Escribe o pega una lista de productos. Un producto por línea. Opcionalmente añade la cantidad y categoría.</p>
-          <p class="text-muted extra-small">Formato esperado: <code>[Cantidad ]Nombre[,Categoría]</code></p>
-          <p class="text-muted extra-small mb-2">Ejemplo:<br><code>2L Leche,Lácteos</code><br><code>Pan,Panadería</code><br><code>1kg Manzanas</code><br><code>Huevos</code></p>
-          <textarea id="import-textarea" class="form-control" rows="8" placeholder="2L Leche,Lácteos&#10;Pan,Panadería..."></textarea>
+          <p class="text-muted small">Escribe o pega categorías (terminadas en ':') seguidas de los productos. Un elemento por línea.</p>
+          <p class="text-muted extra-small">Formato esperado: <br><code>Categoría:<br>[Cantidad ]Nombre</code></p>
+          <p class="text-muted extra-small mb-2">Ejemplo:<br><code>Lácteos:</code><br><code>2L Leche</code><br><code>Huevos</code></p>
+          <textarea id="import-textarea" class="form-control" rows="8" placeholder="Lácteos:&#10;2L Leche&#10;Huevos&#10;Panadería:&#10;Pan"></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" id="btn-import-execute" class="btn btn-primary">Importar ahora</button>
+          <button type="button" id="btn-import-execute" class="btn btn-primary">Cargar ahora</button>
         </div>
       </div>
     </div>
