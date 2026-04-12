@@ -3,15 +3,44 @@
 // ===========================================
 
 // --- Constantes ---
+const DEFAULT_CATEGORIES = [
+  'Frutas y verduras',
+  'Fiambres',
+  'Pescado fresco',
+  'Carne',
+  'Conservas',
+  'Limpieza',
+  'Menaje cocina',
+  'Bebidas',
+  'Pasta y arroces',
+  'Congelados',
+  'Lacteos',
+  'Quesos y otros lacteos',
+  'Desayunos y meriendas',
+  'Panadería',
+  'Otros'
+];
+
 const CATEGORY_EMOJIS = {
   'Frutas y verduras': '🥬',
+  'Fiambres': '🥓',
+  'Pescado fresco': '🐟',
+  'Carne': '🥩',
+  'Conservas': '🥫',
+  'Limpieza': '🧹',
+  'Menaje cocina': '🍳',
+  'Bebidas': '🥤',
+  'Pasta y arroces': '🍝',
+  'Congelados': '🧊',
+  'Lacteos': '🥛',
+  'Quesos y otros lacteos': '🧀',
+  'Desayunos y meriendas': '🥐',
+  'Panadería': '🍞',
+  'Otros': '📦',
+  // Retrocompatibilidad
   'Carnes y pescados': '🥩',
   'Lácteos': '🧀',
-  'Panadería': '🍞',
-  'Bebidas': '🥤',
-  'Limpieza': '🧹',
-  'Higiene': '🧴',
-  'Otros': '📦',
+  'Higiene': '🧴'
 };
 
 // --- Referencias al DOM ---
@@ -59,6 +88,32 @@ function setCategoryCollapsed(categoria, isCollapsed) {
     collapsed = collapsed.filter(c => c !== categoria);
   }
   localStorage.setItem(STORAGE_KEY_COLLAPSED, JSON.stringify(collapsed));
+}
+
+/**
+ * Actualiza las opciones de los selects con las categorías dadas.
+ */
+function updateCategorySelects(allCategories) {
+  const selects = [selectCategory, editCategory];
+  
+  selects.forEach(select => {
+    if (!select) return;
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">Sin categoría</option>';
+    
+    allCategories.forEach(cat => {
+      const emoji = CATEGORY_EMOJIS[cat] || '📦';
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = `${emoji} ${cat}`;
+      select.appendChild(opt);
+    });
+    
+    // Restaurar valor anterior si existe
+    if (Array.from(select.options).some(o => o.value === currentVal)) {
+      select.value = currentVal;
+    }
+  });
 }
 
 // --- Funciones privadas ---
@@ -209,6 +264,15 @@ function createCategoryGroup(categoria, items) {
  */
 function renderList() {
   getAllItems().then((items) => {
+    // RF-21 y RF-23: Actualizar selects dinámicamente con las categorías por defecto + libres
+    const usedCategories = new Set(DEFAULT_CATEGORIES);
+    items.forEach(item => {
+      if (item.categoria) {
+        usedCategories.add(item.categoria);
+      }
+    });
+    updateCategorySelects(usedCategories);
+
     const pendingItems = items.filter((item) => !item.comprado);
     const purchasedItems = items.filter((item) => item.comprado);
 
